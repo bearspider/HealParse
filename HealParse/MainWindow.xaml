@@ -8,6 +8,7 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:Fluent="urn:fluent-ribbon"
         xmlns:local="clr-namespace:HealParse"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="MainWindow" Height="750" Width="1100">
     <Window.Resources>
@@ -22,11 +23,11 @@
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
             -->
-            <CollectionViewSource x:Name="charViewSource" x:Key="charViewSource" Source="{Binding CharacterCollection}">
+            <CollectionViewSource x:Name="charViewSource" x:Key="charViewSource" Source="{Binding CharacterCollection}" IsLiveFilteringRequested="True">
                 <CollectionViewSource.SortDescriptions>
                     <scm:SortDescription PropertyName="Name" Direction="Ascending"/>
                 </CollectionViewSource.SortDescriptions>
-            </CollectionViewSource>            
+            </CollectionViewSource>
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
@@ -58,13 +59,13 @@
                 <!--Tabs-->
                 <Fluent:RibbonTabItem Header="Home">
                     <Fluent:RibbonGroupBox Margin="0,10,0,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Width="100" Header="Open Log File">
-                        <Fluent:Button Header="Load" LargeIcon="Images/Graphicloads-100-Flat-Upload.ico" Click="ButtonLoadLog_Click"/>                        
+                        <Fluent:Button Width="60" Header="Load" LargeIcon="Images/Graphicloads-100-Flat-Upload.ico" Click="ButtonLoadLog_Click"/>                        
                     </Fluent:RibbonGroupBox>
                     <Fluent:RibbonGroupBox Margin="0,10,0,0" HorizontalContentAlignment="Center" Width="110" Header="Monitor Log File">
                         <Fluent:Button Header="Monitor" LargeIcon="Images/Oxygen-Icons.org-Oxygen-Apps-utilities-system-monitor.ico" Click="ButtonMonitorLog_Click"/>
                         <Image Width="40" Name="image_monitorindicator" Margin="5,0,0,0" Source="{Binding Converter={StaticResource monitorconverter}}"/>
                     </Fluent:RibbonGroupBox>
-                    <Fluent:RibbonGroupBox Margin="0,10,0,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Width="375" Header="Date Filter">
+                    <Fluent:RibbonGroupBox Margin="0,10,0,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Width="350" Header="Date Filters">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -75,10 +76,24 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Label Grid.Row="0" Grid.Column="0" Content="Date From: "/>
-                            <xctk:DateTimePicker Grid.Row="0" Grid.Column="1" x:Name="timepickerFrom" ValueChanged="TimepickerFrom_ValueChanged"/>
-                            <xctk:DateTimePicker Grid.Row="1" Grid.Column="1" x:Name="timepickerTo" ValueChanged="TimepickerTo_ValueChanged"/>
+                            <xctk:DateTimePicker Margin="0,5,0,0" Grid.Row="0" Grid.Column="1" x:Name="timepickerFrom" ValueChanged="TimepickerFrom_ValueChanged" ShowButtonSpinner="False"/>
+                            <xctk:DateTimePicker Margin="0,5,0,0" Grid.Row="1" Grid.Column="1" x:Name="timepickerTo" ValueChanged="TimepickerTo_ValueChanged" ShowButtonSpinner="False"/>
                             <Label Grid.Row="1" Grid.Column="0" Content="Date To: "/>
+                        </Grid>                        
+                    </Fluent:RibbonGroupBox>
+                    <Fluent:RibbonGroupBox Margin="0,10,0,0" Header="Additional Filters">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Fluent:TextBox HorizontalAlignment="Right" Width="275" Grid.Row="1" Header="Spell Name: " x:Name="textboxSpellFilter" TextChanged="TextboxSpellFilter_TextChanged"/>
+                            <Fluent:TextBox Margin="0,0,0,5" HorizontalAlignment="Right" Width="300" Grid.Row="0" Header="Character Name: " x:Name="textboxCharFilter" TextChanged="TextboxCharFilter_TextChanged"/>
                         </Grid>
+
                     </Fluent:RibbonGroupBox>
                 </Fluent:RibbonTabItem>
                 <Fluent:RibbonTabItem Name="tabGraph" Header="Graphs">
@@ -127,8 +142,8 @@
                         </xcad:LayoutAnchorablePane>
                     </xcad:LayoutAnchorablePaneGroup>
                     <xcad:LayoutDocumentPane>
-                        <xcad:LayoutDocument x:Name="paneSpells" CanClose="False" Title="Spells">
-                            <DataGrid Name="datagridSpells" AutoGenerateColumns="False" ItemsSource="{Binding Source={StaticResource charViewSource}}">
+                        <xcad:LayoutDocument x:Name="paneSpells" CanClose="False" Title="Spell Counts">
+                            <DataGrid Name="datagridSpells" AutoGenerateColumns="False" CanUserAddRows="False">
                                 <DataGrid.Columns>                                    
                                     <DataGridTextColumn Header="Spell Name" Binding="{Binding SpellName}" IsReadOnly="True"/>
                                     <DataGridTextColumn Header="Count" Binding="{Binding Count}" IsReadOnly="True"/>
@@ -144,6 +159,8 @@
             <Fluent:StatusBarItem Content=" lines of logs processed" HorizontalAlignment="Right"/>
             <Fluent:StatusBarItem Content="Log File: " HorizontalAlignment="Left"/>
             <Fluent:StatusBarItem Name="statusbarFilename" Title="Filename" HorizontalAlignment="Left"/>
+            <Fluent:StatusBarItem Name="statusbarTime" Title="Process Time" HorizontalAlignment="Left" Visibility="Hidden"/>
+            <Fluent:StatusBarItem Margin="25,0,0,0" Width="400" Height="15" Name="statusbarProgress" Title="Progress" HorizontalAlignment="Left"/>
         </Fluent:StatusBar>
     </Grid>
 </Window>

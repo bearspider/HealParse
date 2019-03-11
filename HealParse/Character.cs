@@ -18,14 +18,19 @@ namespace HealParse
             Spells = new ObservableCollection<Spell>();
         }
         public void AddSpell(String spellname, DateTime date)
-        {         
-            try
+        {
+            Boolean spellcheck = true;
+            for(int i = 0; i < Spells.Count; i++)
             {
-                Spell oldspell = Spells.Single<Spell>(i => i.SpellName == spellname);
-                oldspell.Count++;
-                oldspell.Time.Add(date);
+                if(Spells[i].SpellName == spellname)
+                {
+                    Spells[i].Count++;
+                    Spells[i].Time.Add(date);
+                    spellcheck = false;
+                    break;
+                }
             }
-            catch(InvalidOperationException)
+            if(spellcheck)
             {
                 Spell newspell = new Spell();
                 newspell.SpellName = spellname;

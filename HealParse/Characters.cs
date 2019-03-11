@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Data;
 
 namespace HealParse
 {
@@ -23,32 +25,18 @@ namespace HealParse
         {
             CharacterCollection.Clear();
         }
-        public Boolean CharacterExists(String Name)
-        {
-            Boolean rval = true;
-            try
-            {
-                CharacterCollection.Single<Character>(i => i.Name == Name);
-            }
-            catch(InvalidOperationException)
-            {
-                rval = false;
-            }
-            return rval;
-        }
-        public Character Find(String Name)
-        {
-            Character rval = new Character();
-            rval.Name = Name;
-            if(CharacterExists(Name))
-            {
-                rval = CharacterCollection.Single<Character>(i => i.Name == Name);
-            }
-            return rval;
-        }
         public void AddCharacter(String charname)
         {
-            if(!CharacterExists(charname))
+            Boolean charsearch = true;
+            for (int i = 0; i < CharacterCollection.Count; i++)
+            {
+                if (CharacterCollection[i].Name == charname)
+                {
+                    charsearch = false;
+                    break;
+                }
+            }
+            if(charsearch)
             {
                 Character newcharacter = new Character();
                 newcharacter.Name = charname;
@@ -57,7 +45,14 @@ namespace HealParse
         }
         public void AddSpell(String charname, String spellname, DateTime date)
         {
-            Find(charname).AddSpell(spellname,date);             
+            for(int i=0; i<CharacterCollection.Count; i++)
+            {
+                if(CharacterCollection[i].Name == charname)
+                {
+                    CharacterCollection[i].AddSpell(spellname, date);
+                    break;
+                }
+            }           
         }
     }
 }
