@@ -6,6 +6,7 @@
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:oxy="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf"
         xmlns:Fluent="urn:fluent-ribbon"
         xmlns:local="clr-namespace:HealParse"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
@@ -81,6 +82,25 @@
                             <Label Grid.Row="1" Grid.Column="0" Content="Date To: "/>
                         </Grid>                        
                     </Fluent:RibbonGroupBox>
+                    <Fluent:RibbonGroupBox VerticalContentAlignment="Center" Margin="0,10,0,0" Header="Quick Date Filters" Width="150">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Margin="20,20,0,0" x:Name="comboboxQuickDate" SelectionChanged="ComboboxQuickDate_SelectionChanged" SelectedValuePath="Content">
+                                <ComboBoxItem>Last Hour</ComboBoxItem>
+                                <ComboBoxItem>Last 6 Hours</ComboBoxItem>
+                                <ComboBoxItem>Last 24 Hours</ComboBoxItem>
+                                <ComboBoxItem>Last 7 Days</ComboBoxItem>
+                                <ComboBoxItem IsSelected="True">All</ComboBoxItem>                                
+                            </ComboBox>
+                        </Grid>
+                    </Fluent:RibbonGroupBox>
                     <Fluent:RibbonGroupBox Margin="0,10,0,0" Header="Additional Filters">
                         <Grid>
                             <Grid.RowDefinitions>
@@ -144,11 +164,21 @@
                     <xcad:LayoutDocumentPane>
                         <xcad:LayoutDocument x:Name="paneSpells" CanClose="False" Title="Spell Counts">
                             <DataGrid Name="datagridSpells" AutoGenerateColumns="False" CanUserAddRows="False">
-                                <DataGrid.Columns>                                    
+                                <DataGrid.Columns>
                                     <DataGridTextColumn Header="Spell Name" Binding="{Binding SpellName}" IsReadOnly="True"/>
                                     <DataGridTextColumn Header="Count" Binding="{Binding Count}" IsReadOnly="True"/>
                                 </DataGrid.Columns>
                             </DataGrid>
+                        </xcad:LayoutDocument>
+                        <xcad:LayoutDocument x:Name="paneGraph" CanClose="False" Title="Spell Graph" IsSelectedChanged="PaneGraph_IsSelectedChanged">
+                            <oxy:Plot x:Name="piePlot" Title="Spell Distribution" >
+                                <oxy:PieSeries x:Name="pieGraph"
+                                    InnerDiameter="0.2"
+                                    ExplodedDistance="0"
+                                    Stroke="Black" StrokeThickness="1"
+                                    StartAngle="0" AngleSpan="360"
+                                    LabelField="SpellName" ValueField="Count"/>
+                            </oxy:Plot>
                         </xcad:LayoutDocument>
                     </xcad:LayoutDocumentPane>
                 </xcad:LayoutPanel>
@@ -160,7 +190,6 @@
             <Fluent:StatusBarItem Content="Log File: " HorizontalAlignment="Left"/>
             <Fluent:StatusBarItem Name="statusbarFilename" Title="Filename" HorizontalAlignment="Left"/>
             <Fluent:StatusBarItem Name="statusbarTime" Title="Process Time" HorizontalAlignment="Left" Visibility="Hidden"/>
-            <Fluent:StatusBarItem Margin="25,0,0,0" Width="400" Height="15" Name="statusbarProgress" Title="Progress" HorizontalAlignment="Left"/>
         </Fluent:StatusBar>
     </Grid>
 </Window>
