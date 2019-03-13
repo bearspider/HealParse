@@ -35,7 +35,8 @@ namespace HealParse
         public static string defaultPath = @"C:\EQAudioTriggers";
         public static string defaultDB = $"{defaultPath}\\eqtriggers.db";
         public static Regex eqRegex = new Regex(@"\[(?<eqtime>\w+\s\w+\s+\d+\s\d+:\d+:\d+\s\d+)\]\s(?<stringToMatch>.*)");
-        public static Regex spellRegex = new Regex(@"\[(?<eqtime>\w+\s\w+\s+\d+\s\d+:\d+:\d+\s\d+)\]\s(?<character>.*)\sbegins\s.*\<(?<spellname>.*)\>");
+        public static Regex spellRegex = new Regex(@"(\[(?<eqtime>\w+\s\w+\s+\d+\s\d+:\d+:\d+\s\d+)\])\s((?<character>\w+)\sbegin\s(casting|singing)\s(?<spellname>.*)\.)|(\[(?<eqtime>\w+\s\w+\s+\d+\s\d+:\d+:\d+\s\d+)\])\s(?<character>\w+)\s(begins\sto\s(cast|sing)\s.*\<(?<spellname>.*)\>)");
+        public static Regex logRegex = new Regex(@"eqlog_(?<character>.*)_.*\.txt");
         public static string pathRegex = @"(?<logdir>.*\\)(?<logname>eqlog_.*\.txt)";
     }
     #region Converters
@@ -75,6 +76,7 @@ namespace HealParse
         private DateTime? datetofilter;
         public Characters characters;
         private String currentlogfile;
+        private String yourname;
 
         #endregion
 
@@ -191,6 +193,8 @@ namespace HealParse
                 statusbarFilename.DataContext = logmonitorfile;
                 statusbarFilename.Content = fileDialog.FileName;
                 currentlogfile = fileDialog.FileName;
+                Match namematch = GlobalVariables.logRegex.Match(fileDialog.FileName);
+                yourname = namematch.Groups["character"].Value;
                 if (characters.Count() > 0)
                 {
                     characters.Clear();
@@ -260,10 +264,15 @@ namespace HealParse
                 {
                     DateTime newtime;
                     DateTime.TryParseExact(spellmatch.Groups["eqtime"].Value, "ddd MMM dd HH:mm:ss yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out newtime);
+                    String tempname = spellmatch.Groups["character"].Value;
+                    if(tempname == "You")
+                    {
+                        tempname = yourname;
+                    }
                     lock (_characterLock)
                     {
-                        characters.AddCharacter(spellmatch.Groups["character"].Value);
-                        characters.AddSpell(spellmatch.Groups["character"].Value, spellmatch.Groups["spellname"].Value, newtime);
+                        characters.AddCharacter(tempname);
+                        characters.AddSpell(tempname, spellmatch.Groups["spellname"].Value, newtime);
                     }
                 }
             }
@@ -297,41 +306,51 @@ namespace HealParse
         }
         private void TimepickerFrom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            datefromfilter = timepickerFrom.Value;
-            if (timepickerFrom.Value > DateTime.Now)
+            if (timepickerFrom != null && timepickerTo != null)
             {
-                Xceed.Wpf.Toolkit.MessageBox.Show("Can't Choose Future Date", "Invalid Date", MessageBoxButton.OK, MessageBoxImage.Error);
-                timepickerFrom.Value = null;
-            }
-            if (timepickerFrom.Value != null && timepickerTo.Value != null)
-            {                
-                if(timepickerFrom.Value > timepickerTo.Value)
+                datefromfilter = timepickerFrom.Value;
+                if (timepickerFrom.Value > DateTime.Now)
                 {
-                    Xceed.Wpf.Toolkit.MessageBox.Show("Invalid Date Range", "Invalid Date", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Xceed.Wpf.Toolkit.MessageBox.Show("Can't Choose Future Date", "Invalid Date", MessageBoxButton.OK, MessageBoxImage.Error);
                     timepickerFrom.Value = null;
-                }                
+                }
+                if (timepickerFrom.Value != null && timepickerTo.Value != null)
+                {
+                    if (timepickerFrom.Value > timepickerTo.Value)
+                    {
+                        Xceed.Wpf.Toolkit.MessageBox.Show("Invalid Date Range", "Invalid Date", MessageBoxButton.OK, MessageBoxImage.Error);
+                        timepickerFrom.Value = null;
+                    }
+                }
+                if (datagridSpells != null)
+                {
+                    CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
+                }
             }
-            CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
-            CollectionViewSource.GetDefaultView(pieGraph.ItemsSource).Refresh();
         }
         private void TimepickerTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            datetofilter = timepickerTo.Value;
-            if (timepickerTo.Value > DateTime.Now)
+            if (timepickerTo != null && timepickerTo != null)
             {
-                Xceed.Wpf.Toolkit.MessageBox.Show("Can't Choose Future Date", "Invalid Date", MessageBoxButton.OK, MessageBoxImage.Error);
-                timepickerTo.Value = null;
-            }
-            if (timepickerTo.Value != null && timepickerFrom.Value != null)
-            {                
-                if(timepickerFrom.Value < timepickerFrom.Value)
+                datetofilter = timepickerTo.Value;
+                if (timepickerTo.Value > DateTime.Now)
                 {
-                    Xceed.Wpf.Toolkit.MessageBox.Show("Invalid Date Range", "Invalid Date", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Xceed.Wpf.Toolkit.MessageBox.Show("Can't Choose Future Date", "Invalid Date", MessageBoxButton.OK, MessageBoxImage.Error);
                     timepickerTo.Value = null;
-                }                         
+                }
+                if (timepickerTo.Value != null && timepickerFrom.Value != null)
+                {
+                    if (timepickerFrom.Value < timepickerFrom.Value)
+                    {
+                        Xceed.Wpf.Toolkit.MessageBox.Show("Invalid Date Range", "Invalid Date", MessageBoxButton.OK, MessageBoxImage.Error);
+                        timepickerTo.Value = null;
+                    }
+                }
+                if (datagridSpells != null)
+                {
+                   CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
+                }
             }
-            CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
-            CollectionViewSource.GetDefaultView(pieGraph.ItemsSource).Refresh();
         }
         private void TextboxSpellFilter_TextChanged(object sender, TextChangedEventArgs e)
         {

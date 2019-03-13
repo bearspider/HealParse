@@ -29,6 +29,11 @@
                     <scm:SortDescription PropertyName="Name" Direction="Ascending"/>
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
+            <ObjectDataProvider ObjectType="{x:Type local:Spell}" MethodName="CountSpells" x:Key="spellcount">
+                <ObjectDataProvider.MethodParameters>
+                    
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
@@ -77,8 +82,16 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Label Grid.Row="0" Grid.Column="0" Content="Date From: "/>
-                            <xctk:DateTimePicker Margin="0,5,0,0" Grid.Row="0" Grid.Column="1" x:Name="timepickerFrom" ValueChanged="TimepickerFrom_ValueChanged" ShowButtonSpinner="False"/>
-                            <xctk:DateTimePicker Margin="0,5,0,0" Grid.Row="1" Grid.Column="1" x:Name="timepickerTo" ValueChanged="TimepickerTo_ValueChanged" ShowButtonSpinner="False"/>
+                            <xctk:DateTimePicker Margin="0,5,0,0" Grid.Row="0" Grid.Column="1" x:Name="timepickerFrom" ValueChanged="TimepickerFrom_ValueChanged" ShowButtonSpinner="False">
+                                <xctk:DateTimePicker.Value>
+                                    <Binding Source="{StaticResource spellcount}" Path="MethodParameters[0]" BindsDirectlyToSource="True" UpdateSourceTrigger="PropertyChanged"/>
+                                </xctk:DateTimePicker.Value>
+                            </xctk:DateTimePicker>
+                            <xctk:DateTimePicker Margin="0,5,0,0" Grid.Row="1" Grid.Column="1" x:Name="timepickerTo" ValueChanged="TimepickerTo_ValueChanged" ShowButtonSpinner="False">
+                                <xctk:DateTimePicker.Value>
+                                    <Binding Source="{StaticResource spellcount}" Path="MethodParameters[1]" BindsDirectlyToSource="True" UpdateSourceTrigger="PropertyChanged"/>
+                                </xctk:DateTimePicker.Value>
+                            </xctk:DateTimePicker>
                             <Label Grid.Row="1" Grid.Column="0" Content="Date To: "/>
                         </Grid>                        
                     </Fluent:RibbonGroupBox>
@@ -166,7 +179,7 @@
                             <DataGrid Name="datagridSpells" AutoGenerateColumns="False" CanUserAddRows="False">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Spell Name" Binding="{Binding SpellName}" IsReadOnly="True"/>
-                                    <DataGridTextColumn Header="Count" Binding="{Binding Count}" IsReadOnly="True"/>
+                                    <DataGridTextColumn Header="Count" Binding="{Binding Source={StaticResource spellcount}}" IsReadOnly="True"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </xcad:LayoutDocument>
