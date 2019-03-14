@@ -87,42 +87,48 @@ namespace HealParse
             characters = new Characters();
             this.DataContext = characters;            
             BindingOperations.EnableCollectionSynchronization(characters.CharacterCollection, _characterLock);
+            timepickerFrom.Value = DateTime.Now.AddYears(-7);
+            timepickerTo.Value = DateTime.Now;
             synccontext = SynchronizationContext.Current;
         }
         private bool UserFilter(object item)
         {
+            Boolean Rval = false;
             var charobject = (Character)item;
-            if(Regex.IsMatch(charobject.Name,@"(a|an)\s.*" ,RegexOptions.IgnoreCase))
+            if(!Regex.IsMatch(charobject.Name,@"(a|an)\s.*" ,RegexOptions.IgnoreCase))
             {
-                return false;
-            }
-            //Show all values if both filters are empty
-            if (String.IsNullOrEmpty(textboxCharFilter.Text) && String.IsNullOrEmpty(textboxSpellFilter.Text))
-            {
-                return true;
-            }
-            //Filter by Character
-            if(!String.IsNullOrEmpty(textboxCharFilter.Text) && String.IsNullOrEmpty(textboxSpellFilter.Text))
-            {
-                return Regex.IsMatch(charobject.Name, Regex.Escape(textboxCharFilter.Text), RegexOptions.IgnoreCase);
-            }
-            //Filter by Spell
-            if(String.IsNullOrEmpty(textboxCharFilter.Text) && !String.IsNullOrEmpty(textboxSpellFilter.Text))
-            {
-                if(ContainsSpell(charobject))
+                //Show all values if both filters are empty
+                if (String.IsNullOrEmpty(textboxCharFilter.Text) && String.IsNullOrEmpty(textboxSpellFilter.Text))
                 {
-                    return true;
+                    Rval = true;
+                }
+                //Filter by Character
+                if (!String.IsNullOrEmpty(textboxCharFilter.Text) && String.IsNullOrEmpty(textboxSpellFilter.Text))
+                {
+                    Rval = Regex.IsMatch(charobject.Name, Regex.Escape(textboxCharFilter.Text), RegexOptions.IgnoreCase);
+                }
+                //Filter by Spell
+                if (String.IsNullOrEmpty(textboxCharFilter.Text) && !String.IsNullOrEmpty(textboxSpellFilter.Text))
+                {
+                    if (ContainsSpell(charobject))
+                    {
+                        Rval = true;
+                    }
+                }
+                //Filter by Character AND Spell
+                if (!String.IsNullOrEmpty(textboxCharFilter.Text) && !String.IsNullOrEmpty(textboxSpellFilter.Text))
+                {
+                    if (Regex.IsMatch(charobject.Name, Regex.Escape(textboxCharFilter.Text), RegexOptions.IgnoreCase) && ContainsSpell(charobject))
+                    {
+                        Rval = true;
+                    }
+                }
+                if (!charobject.SpellsEmpty(datefromfilter.Value, datetofilter.Value))
+                {
+                    Rval = true;
                 }
             }
-            //Filter by Character AND Spell
-            if(!String.IsNullOrEmpty(textboxCharFilter.Text) && !String.IsNullOrEmpty(textboxSpellFilter.Text))
-            {
-                if(Regex.IsMatch(charobject.Name, Regex.Escape(textboxCharFilter.Text), RegexOptions.IgnoreCase) && ContainsSpell(charobject))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return Rval;
         }
         private bool SpellFilter(object item)
         {
@@ -140,22 +146,56 @@ namespace HealParse
             //if there is no spell filter or we matched the filter and there's a valid date range, check dates
             if(datefromfilter != null && datetofilter != null && rval)
             {
-                for(int i = 0; i < ((Spell)item).Time.Count; i++)
-                {
-                    int beforedate = ((Spell)item).Time[i].CompareTo(datetofilter);
-                    int afterdate = ((Spell)item).Time[i].CompareTo(datefromfilter);
-                    if(beforedate < 0 && afterdate > 0)
-                    {
-                        rval = true;
-                    }
-                    else
-                    {
-                        rval = false;
-                    }
-                }
+                CollectionViewSource cvsSpellTime = new CollectionViewSource();
+                cvsSpellTime.Source = ((Spell)item).Time;
+                cvsSpellTime.Filter += DateFilter;
+                cvsSpellTime.View.Refresh();
+                ((Spell)item).Count = (cvsSpellTime.View).Cast<object>().Count();
+            }
+            if(((Spell)item).Count > 0)
+            {
+                rval = true;
+            }
+            else
+            {
+                rval = false;
             }
             return rval;
         }
+        public void DateFilter(object item, FilterEventArgs e)
+        {
+            if(e.Item != null)
+            {
+                int beforedate = (e.Item as DateTime?).Value.CompareTo(datetofilter);
+                int afterdate = (e.Item as DateTime?).Value.CompareTo(datefromfilter);
+                if(beforedate < 0 && afterdate > 0)
+                {
+                    e.Accepted = true;
+                }
+                else
+                {
+                    e.Accepted = false;
+                }
+            }
+        }
+        /*private bool DateFilter(object item)
+        {
+            Boolean rval = false;
+            for (int i = 0; i < ((Spell)item).Time.Count; i++)
+            {
+                int beforedate = ((Spell)item).Time[i].CompareTo(datetofilter);
+                int afterdate = ((Spell)item).Time[i].CompareTo(datefromfilter);
+                if (beforedate < 0 && afterdate > 0)
+                {
+                    rval = true;
+                }
+                else
+                {
+                    rval = false;
+                }
+            }
+            return rval;
+        }*/
         private bool ContainsSpell(Character charobject)
         {
             Boolean rval = false;
@@ -293,8 +333,10 @@ namespace HealParse
         {
             if ((Character)listviewCharacters.SelectedItem != null)
             {
-                datagridSpells.ItemsSource = ((Character)listviewCharacters.SelectedItem).Spells;
-                pieGraph.ItemsSource = ((Character)listviewCharacters.SelectedItem).Spells;
+                if(((Character)listviewCharacters.SelectedItem).MaxSpellCount == 0)
+                {
+                    ((Character)listviewCharacters.SelectedItem).CountSpells();
+                }
                 ICollectionView cvSpells = CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource);
                 if(cvSpells != null && cvSpells.CanSort == true)
                 {
@@ -322,9 +364,10 @@ namespace HealParse
                         timepickerFrom.Value = null;
                     }
                 }
-                if (datagridSpells != null)
+                if (datagridSpells != null && datagridSpells.ItemsSource != null)
                 {
                     CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
+                    CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();                    
                 }
             }
         }
@@ -346,16 +389,29 @@ namespace HealParse
                         timepickerTo.Value = null;
                     }
                 }
-                if (datagridSpells != null)
+                if (datagridSpells != null && datagridSpells.ItemsSource != null)
                 {
-                   CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
+                    CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
+                    CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();                    
                 }
             }
         }
         private void TextboxSpellFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
             CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();
-            CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
+            if(CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).IsEmpty)
+            {
+                Xceed.Wpf.Toolkit.MessageBox.Show("No Matching Spells", "Spell Filter", MessageBoxButton.OK, MessageBoxImage.Error);
+                textboxSpellFilter.Text = "";
+                listviewCharacters.SelectedIndex = 0;
+            }
+            else
+            {
+                if(datagridSpells.ItemsSource != null)
+                {
+                    CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
+                }                     
+            }
         }
         private void TextboxCharFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -386,8 +442,8 @@ namespace HealParse
                         timepickerFrom.Value = DateTime.Now.AddDays(-7);
                         break;
                     case "All":
-                        timepickerTo.Value = null;
-                        timepickerFrom.Value = null;
+                        timepickerTo.Value = DateTime.Now;
+                        timepickerFrom.Value = DateTime.Now.AddYears(-7);
                         break;
                 }
             }

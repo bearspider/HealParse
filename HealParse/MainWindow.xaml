@@ -16,23 +16,18 @@
         <ResourceDictionary>
             <local:MonitorConverter x:Key="monitorconverter" />
             <local:Spell x:Key="spellview"/>
-            <!--
-            <CollectionViewSource x:Name="spellViewSource" x:Key="spellViewSource" Source="{Binding Spells}">
+            <CollectionViewSource x:Name="spellViewSource" x:Key="spellViewSource" IsLiveFilteringRequested="True">
                 <CollectionViewSource.SortDescriptions>
                     <scm:SortDescription PropertyName="Count" Direction="Descending"/>
                     <scm:SortDescription PropertyName="Time" Direction="Ascending"/>
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
-            -->
             <CollectionViewSource x:Name="charViewSource" x:Key="charViewSource" Source="{Binding CharacterCollection}" IsLiveFilteringRequested="True">
                 <CollectionViewSource.SortDescriptions>
                     <scm:SortDescription PropertyName="Name" Direction="Ascending"/>
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
-            <ObjectDataProvider ObjectType="{x:Type local:Spell}" MethodName="CountSpells" x:Key="spellcount">
-                <ObjectDataProvider.MethodParameters>
-                    
-                </ObjectDataProvider.MethodParameters>
+            <ObjectDataProvider x:Key="spellpercent" ObjectType="{x:Type local:Character}" MethodName="TotalSpellCount">
             </ObjectDataProvider>
         </ResourceDictionary>
     </Window.Resources>
@@ -83,14 +78,8 @@
                             </Grid.ColumnDefinitions>
                             <Label Grid.Row="0" Grid.Column="0" Content="Date From: "/>
                             <xctk:DateTimePicker Margin="0,5,0,0" Grid.Row="0" Grid.Column="1" x:Name="timepickerFrom" ValueChanged="TimepickerFrom_ValueChanged" ShowButtonSpinner="False">
-                                <xctk:DateTimePicker.Value>
-                                    <Binding Source="{StaticResource spellcount}" Path="MethodParameters[0]" BindsDirectlyToSource="True" UpdateSourceTrigger="PropertyChanged"/>
-                                </xctk:DateTimePicker.Value>
                             </xctk:DateTimePicker>
                             <xctk:DateTimePicker Margin="0,5,0,0" Grid.Row="1" Grid.Column="1" x:Name="timepickerTo" ValueChanged="TimepickerTo_ValueChanged" ShowButtonSpinner="False">
-                                <xctk:DateTimePicker.Value>
-                                    <Binding Source="{StaticResource spellcount}" Path="MethodParameters[1]" BindsDirectlyToSource="True" UpdateSourceTrigger="PropertyChanged"/>
-                                </xctk:DateTimePicker.Value>
                             </xctk:DateTimePicker>
                             <Label Grid.Row="1" Grid.Column="0" Content="Date To: "/>
                         </Grid>                        
@@ -124,7 +113,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Fluent:TextBox HorizontalAlignment="Right" Width="275" Grid.Row="1" Header="Spell Name: " x:Name="textboxSpellFilter" TextChanged="TextboxSpellFilter_TextChanged"/>
-                            <Fluent:TextBox Margin="0,0,0,5" HorizontalAlignment="Right" Width="300" Grid.Row="0" Header="Character Name: " x:Name="textboxCharFilter" TextChanged="TextboxCharFilter_TextChanged"/>
+                            <Fluent:TextBox Margin="0,0,0,5" HorizontalAlignment="Right" Width="301" Grid.Row="0" Header="Character Name: " x:Name="textboxCharFilter" TextChanged="TextboxCharFilter_TextChanged"/>
                         </Grid>
 
                     </Fluent:RibbonGroupBox>
@@ -176,10 +165,10 @@
                     </xcad:LayoutAnchorablePaneGroup>
                     <xcad:LayoutDocumentPane>
                         <xcad:LayoutDocument x:Name="paneSpells" CanClose="False" Title="Spell Counts">
-                            <DataGrid Name="datagridSpells" AutoGenerateColumns="False" CanUserAddRows="False">
+                            <DataGrid Name="datagridSpells" AutoGenerateColumns="False" CanUserAddRows="False" ItemsSource="{Binding SelectedItem.Spells, ElementName=listviewCharacters}">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Spell Name" Binding="{Binding SpellName}" IsReadOnly="True"/>
-                                    <DataGridTextColumn Header="Count" Binding="{Binding Source={StaticResource spellcount}}" IsReadOnly="True"/>
+                                    <DataGridTextColumn Header="Count" Binding="{Binding Count}" IsReadOnly="True"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </xcad:LayoutDocument>

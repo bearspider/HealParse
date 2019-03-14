@@ -11,7 +11,7 @@ namespace HealParse
     public class Spell
     {
         public String SpellName { get; set; }
-        public long Count { get; set; }
+        public Int64 Count { get; set; }
         public ObservableCollection<DateTime> Time { get; set; }
         public Spell()
         {
@@ -21,6 +21,7 @@ namespace HealParse
         }
         public Int64 CountSpells(DateTime from, DateTime to)
         {
+            Console.WriteLine(SpellName);
             Int64 rval = 0;
             if(from != null && to != null)
             {
@@ -32,6 +33,17 @@ namespace HealParse
                     }
                 }
             }
+            return rval;
+        }
+
+        public double PercentCast(Int64 maxcasts)
+        {
+            double rval = 0;
+            if(maxcasts < 0)
+            {
+                rval = Count / maxcasts;
+            }
+            Console.WriteLine(Count);
             return rval;
         }
     }
