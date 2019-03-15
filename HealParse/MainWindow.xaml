@@ -11,7 +11,7 @@
         xmlns:local="clr-namespace:HealParse"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="MainWindow" Height="750" Width="1100">
+        Title="EQ Spell Parse" Height="750" Width="1100" Icon="Images/Robinweatherall-Library-Books.ico">
     <Window.Resources>
         <ResourceDictionary>
             <local:MonitorConverter x:Key="monitorconverter" />
@@ -117,7 +117,7 @@
                         </Grid>
 
                     </Fluent:RibbonGroupBox>
-                </Fluent:RibbonTabItem>
+                </Fluent:RibbonTabItem><!--
                 <Fluent:RibbonTabItem Name="tabGraph" Header="Graphs">
                     
                 </Fluent:RibbonTabItem>
@@ -130,7 +130,7 @@
                     </Fluent:RibbonGroupBox>
                     <Fluent:RibbonGroupBox Header="User Filter">
                     </Fluent:RibbonGroupBox>
-                </Fluent:RibbonTabItem>
+                </Fluent:RibbonTabItem>-->
             </Fluent:Ribbon>
         </StackPanel>
         <xcad:DockingManager 
