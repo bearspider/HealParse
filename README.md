@@ -1,1 +1,1 @@
-HealParse
+EQ Spell Parse
