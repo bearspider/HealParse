@@ -123,9 +123,9 @@ namespace HealParse
                         Rval = true;
                     }
                 }
-                if (!charobject.SpellsEmpty(datefromfilter.Value, datetofilter.Value))
+                if (charobject.SpellsEmpty(datefromfilter.Value, datetofilter.Value))
                 {
-                    Rval = true;
+                    Rval = false;
                 }
             }
             return Rval;
@@ -151,15 +151,16 @@ namespace HealParse
                 cvsSpellTime.Filter += DateFilter;
                 cvsSpellTime.View.Refresh();
                 ((Spell)item).Count = (cvsSpellTime.View).Cast<object>().Count();
+                if (((Spell)item).Count > 0)
+                {
+                    rval = true;
+                }
+                else
+                {
+                    rval = false;
+                }
             }
-            if(((Spell)item).Count > 0)
-            {
-                rval = true;
-            }
-            else
-            {
-                rval = false;
-            }
+
             return rval;
         }
         public void DateFilter(object item, FilterEventArgs e)
@@ -178,7 +179,7 @@ namespace HealParse
                 }
             }
         }
-        /*private bool DateFilter(object item)
+        private bool DateFilter(object item)
         {
             Boolean rval = false;
             for (int i = 0; i < ((Spell)item).Time.Count; i++)
@@ -195,7 +196,7 @@ namespace HealParse
                 }
             }
             return rval;
-        }*/
+        }
         private bool ContainsSpell(Character charobject)
         {
             Boolean rval = false;
@@ -203,7 +204,15 @@ namespace HealParse
             {
                 if(Regex.IsMatch(charobject.Spells[i].SpellName,Regex.Escape(textboxSpellFilter.Text),RegexOptions.IgnoreCase))
                 {
-                    return true;
+                    if(DateFilter(charobject.Spells[i]))
+                    {
+                        Console.WriteLine("Valid Date on Spell");
+                        return true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid Date on Spell");
+                    }
                 }
             }
             return rval;
@@ -348,6 +357,7 @@ namespace HealParse
         }
         private void TimepickerFrom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
+            Console.WriteLine("Timepicker From Changed");
             if (timepickerFrom != null && timepickerTo != null)
             {
                 datefromfilter = timepickerFrom.Value;
@@ -363,17 +373,39 @@ namespace HealParse
                         Xceed.Wpf.Toolkit.MessageBox.Show("Invalid Date Range", "Invalid Date", MessageBoxButton.OK, MessageBoxImage.Error);
                         timepickerFrom.Value = null;
                     }
-                }
-                if (datagridSpells != null && datagridSpells.ItemsSource != null)
-                {
-                    CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
-                    CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();                    
-                }
+                    if (datagridSpells.ItemsSource != null)
+                    {
+                        CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
+                        CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();
+                        if (listviewCharacters.SelectedItem == null)
+                        {
+                            listviewCharacters.SelectedIndex = 0;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("TimepickerFrom Datagridspell null");
+                        if (listviewCharacters.ItemsSource != null)
+                        {
+                            CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();
+                            if (CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).IsEmpty)
+                            {
+                                //Xceed.Wpf.Toolkit.MessageBox.Show("Search Results Empty", "No Results", MessageBoxButton.OK, MessageBoxImage.Error);
+                                Console.WriteLine("TimepickerFrom Characters Empty");
+                            }
+                            else
+                            {
+                                Console.WriteLine("TimepickerFrom Characters NotEmpty");
+                            }
+                        }
+                    }
+                }            
             }
         }
         private void TimepickerTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (timepickerTo != null && timepickerTo != null)
+            Console.WriteLine("Timepicker To Changed");
+            if (timepickerFrom != null && timepickerTo != null)
             {
                 datetofilter = timepickerTo.Value;
                 if (timepickerTo.Value > DateTime.Now)
@@ -388,27 +420,56 @@ namespace HealParse
                         Xceed.Wpf.Toolkit.MessageBox.Show("Invalid Date Range", "Invalid Date", MessageBoxButton.OK, MessageBoxImage.Error);
                         timepickerTo.Value = null;
                     }
-                }
-                if (datagridSpells != null && datagridSpells.ItemsSource != null)
-                {
-                    CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
-                    CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();                    
+                    if (datagridSpells.ItemsSource != null)
+                    {
+                        CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
+                        CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();
+                        if (listviewCharacters.SelectedItem == null)
+                        {
+                            listviewCharacters.SelectedIndex = 0;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("TimepickerTo Datagridspell null");
+                        if (listviewCharacters.ItemsSource != null)
+                        {
+                            CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();
+                            if (CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).IsEmpty)
+                            {
+                                //Xceed.Wpf.Toolkit.MessageBox.Show("Search Results Empty", "No Results", MessageBoxButton.OK, MessageBoxImage.Error);
+                                Console.WriteLine("TimepickerTo Characters Empty");
+                            }
+                            else
+                            {
+                                Console.WriteLine("TimepickerTo Characters NotEmpty");
+                            }
+                        }
+                    }
                 }
             }
         }
         private void TextboxSpellFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
+            Console.WriteLine(textboxSpellFilter.Text);
             CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();
             if(CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).IsEmpty)
             {
+                Console.WriteLine("listviewcharacters is empty");
                 Xceed.Wpf.Toolkit.MessageBox.Show("No Matching Spells", "Spell Filter", MessageBoxButton.OK, MessageBoxImage.Error);
                 textboxSpellFilter.Text = "";
                 listviewCharacters.SelectedIndex = 0;
             }
             else
             {
+                if(listviewCharacters.SelectedItem == null)
+                {
+                    Console.WriteLine("listviewcharacters is not empty/selected item is null");
+                    listviewCharacters.SelectedIndex = 0;
+                }
                 if(datagridSpells.ItemsSource != null)
                 {
+                    Console.WriteLine("listviewcharacters is not empty/datagridspells itemsource not null");
                     CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Refresh();
                 }                     
             }
@@ -416,6 +477,10 @@ namespace HealParse
         private void TextboxCharFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
             CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Refresh();
+            if(!CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).IsEmpty && textboxCharFilter.Text == "")
+            {
+                listviewCharacters.SelectedIndex = 0;
+            }
         }
 
         private void ComboboxQuickDate_SelectionChanged(object sender, SelectionChangedEventArgs e)
