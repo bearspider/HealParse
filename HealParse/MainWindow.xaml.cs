@@ -247,7 +247,9 @@ namespace HealParse
                 if (characters.Count() > 0)
                 {
                     characters.Clear();
-                    datagridSpells.DataContext = null;
+                    CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Filter = null;
+                    listviewCharacters.SelectedItem = null;
+                    statusbarTime.Visibility = Visibility.Hidden;
                 }
                 String capturedLines = null;
                 using (FileStream filestream = File.Open(currentlogfile, System.IO.FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -262,13 +264,14 @@ namespace HealParse
                     String[] delimiter = new string[] { "\r\n" };
                     String[] lines = capturedLines.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);                 
                     string result = await Task.Run(() => LoadLogFile(lines));
+                    Console.WriteLine("Task completed.");
                     if(!string.IsNullOrEmpty(result))
                     {
                         statusbarTime.Content = $" || Parse Completed in {result} Seconds";
                         statusbarTime.Visibility = Visibility.Visible;
-                        statusbarStatus.Content = lines.Length;
-                        listviewCharacters.SelectedIndex = 0;
+                        statusbarStatus.Content = lines.Length;                        
                         CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Filter = UserFilter;
+                        listviewCharacters.SelectedIndex = 0;
                     }
                 }
             }
@@ -352,7 +355,10 @@ namespace HealParse
                     cvSpells.SortDescriptions.Clear();
                     cvSpells.SortDescriptions.Add(new SortDescription("Count", ListSortDirection.Descending));
                 }
-                CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Filter = SpellFilter;
+                if(datagridSpells.ItemsSource != null)
+                {
+                    CollectionViewSource.GetDefaultView(datagridSpells.ItemsSource).Filter = SpellFilter;
+                }                
             }
         }
         private void TimepickerFrom_ValueChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -482,7 +488,6 @@ namespace HealParse
                 listviewCharacters.SelectedIndex = 0;
             }
         }
-
         private void ComboboxQuickDate_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (characters != null && characters.Count() > 0)
@@ -513,7 +518,6 @@ namespace HealParse
                 }
             }
         }
-
         private void PaneGraph_IsSelectedChanged(object sender, EventArgs e)
         {
             OxyPlot.Wpf.PlotView plotview = new OxyPlot.Wpf.PlotView();

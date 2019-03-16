@@ -16,11 +16,12 @@ namespace HealParse
         public String Name { get; set; }
         public ObservableCollection<Spell> Spells { get; set; }
         public Int64 MaxSpellCount { get; set; }
+
         public Character()
         {
             Name = "";
             Spells = new ObservableCollection<Spell>();
-            MaxSpellCount = 0;
+            MaxSpellCount = 0;            
         }
         public void AddSpell(String spellname, DateTime date)
         {
