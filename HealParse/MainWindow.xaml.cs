@@ -82,6 +82,7 @@ namespace HealParse
         private String currentlogfile;
         private String yourname;
         private int totallinecount = 0;
+        private ObservableCollection<Buff> listofbuffs = new ObservableCollection<Buff>();
         #endregion
 
         public MainWindow()
@@ -98,18 +99,28 @@ namespace HealParse
             timepickerFrom.Value = DateTime.Now.AddYears(-7);
             timepickerTo.Value = DateTime.Now;
             synccontext = SynchronizationContext.Current;
+            LoadBuffSettings();
+        }
+        private void LoadBuffSettings()
+        {
+            listofbuffs.Clear();
+            foreach (String buffproperty in SpellParse.Properties.Settings.Default.BuffList.Cast<string>())
+            {
+                Buff newbuff = new Buff
+                {
+                    Name = buffproperty
+                };
+                listofbuffs.Add(newbuff);
+            }
+            datagridBuffList.ItemsSource = listofbuffs;
         }
         private void LoadBuffList()
         {
-            if(bufflist.Count > 0)
+            if(listofbuffs.Count > 0)
             {
-                foreach (String buff in bufflist)
+                foreach (Buff buff in listofbuffs)
                 {
-                    Buff newbuff = new Buff
-                    {
-                        Name = buff
-                    };
-                    missingbuffs.Add(newbuff);
+                    missingbuffs.Add(buff);
                 }
             }
         }
@@ -250,6 +261,7 @@ namespace HealParse
         }
         private void ButtonExit_Click(object sender, RoutedEventArgs e)
         {
+            SaveBuffs();
             this.Close();
         }
         private async void ButtonLoadLog_Click(object sender, RoutedEventArgs e)
@@ -275,6 +287,7 @@ namespace HealParse
                 if (characters.Count() > 0)
                 {
                     characters.Clear();
+                    BindingOperations.EnableCollectionSynchronization(characters.CharacterCollection, _characterLock);
                     CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Filter = null;
                     listviewCharacters.SelectedItem = null;
                     statusbarTime.Visibility = Visibility.Hidden;
@@ -403,15 +416,15 @@ namespace HealParse
                                 Match buffmatch = GlobalVariables.buff.Match(captureline);
                                 if(buffmatch.Success)
                                 {
-                                    foreach (String buff in bufflist)
+                                    foreach (Buff buff in listofbuffs)
                                     {
-                                        if (buffmatch.Groups["buff"].Value.Contains(buff))
+                                        if (buffmatch.Groups["buff"].Value.Contains(buff.Name))
                                         {
                                             Boolean remove = false;
                                             Buff removebuff = new Buff();
                                             foreach(Buff checkbuff in missingbuffs)
                                             {
-                                                if(checkbuff.Name == buff)
+                                                if(checkbuff.Name == buff.Name)
                                                 {
                                                     remove = true;
                                                     removebuff = checkbuff;
@@ -427,6 +440,10 @@ namespace HealParse
 
                             }
                             Thread.Sleep(1);
+                            if(monitorstatus == false)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -653,32 +670,18 @@ namespace HealParse
             plotview.Model = newplot;
             //paneGraph.Content = plotview;
         }
-        private void ButtonLoadBuffs_Click(object sender, RoutedEventArgs e)
+        private void SaveBuffs()
         {
-            bufflist.Clear();
-            OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "Buff List|EQBuffList*.txt";
-            if (fileDialog.ShowDialog() == true)
+            SpellParse.Properties.Settings.Default.BuffList.Clear();
+            foreach (Buff savebuff in listofbuffs)
             {
-                String capturedLines = null;
-                using (FileStream filestream = File.Open(fileDialog.FileName, System.IO.FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                {
-                    using (StreamReader streamReader = new StreamReader(filestream))
-                    {
-                        capturedLines = streamReader.ReadToEnd();
-                        if (capturedLines.Length > 0)
-                        {
-                            String[] delimiter = new string[] { "\r\n" };
-                            String[] lines = capturedLines.Split(delimiter, StringSplitOptions.RemoveEmptyEntries);
-                            foreach(String line in lines)
-                            {
-                                bufflist.Add(line);
-                            }
-                        }
-                    }
-                }
-                ResetBuffMissing();
+                SpellParse.Properties.Settings.Default.BuffList.Add(savebuff.Name);
             }
+            SpellParse.Properties.Settings.Default.Save();
+        }
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            SaveBuffs();
         }
     }
 }
