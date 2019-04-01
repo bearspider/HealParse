@@ -11,7 +11,7 @@
         xmlns:local="clr-namespace:HealParse"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="EQ Spell Parse" Height="750" Width="1100" Icon="Images/Robinweatherall-Library-Books.ico">
+        Title="EQ Spell Parse" Height="750" Width="1100" Icon="Images/Robinweatherall-Library-Books.ico" Closed="Window_Closed">
     <Window.Resources>
         <ResourceDictionary>
             <local:MonitorConverter x:Key="monitorconverter" />
@@ -43,7 +43,15 @@
                 <Fluent:Ribbon.Menu>
                     <Fluent:Backstage>
                         <Fluent:BackstageTabControl>
-                            <Fluent:Button LargeIcon="images\Graphicloads-100-Flat-Upload.ico" Name="buttonLoadBuffs" Header="Load Buff List" Click="ButtonLoadBuffs_Click"/>
+                            <Fluent:BackstageTabItem Header="Buff List">
+                                <StackPanel>
+                                    <DataGrid Name="datagridBuffList" AutoGenerateColumns="False">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Buff Name" Binding="{Binding Name,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" IsReadOnly="False"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Fluent:BackstageTabItem>
                             <!--<Fluent:BackstageTabItem Header="Settings">
                                 <StackPanel  VerticalAlignment="Center">
                                     <Fluent:Button LargeIcon="images\Pelfusion-Long-Shadow-Media-Settings.ico" Name="buttonSave" Header="Save" Click="ButtonSave_Click"/>
