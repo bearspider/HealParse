@@ -1,0 +1,205 @@
+﻿<Window x:Class="HealParse.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+        xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:oxy="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf"
+        xmlns:Fluent="urn:fluent-ribbon"
+        xmlns:local="clr-namespace:HealParse"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="EQ Spell Parse" Height="750" Width="1100" Icon="Images/Robinweatherall-Library-Books.ico">
+    <Window.Resources>
+        <ResourceDictionary>
+            <local:MonitorConverter x:Key="monitorconverter" />
+            <local:Spell x:Key="spellview"/>
+            <CollectionViewSource x:Name="spellViewSource" x:Key="spellViewSource" IsLiveFilteringRequested="True">
+                <CollectionViewSource.SortDescriptions>
+                    <scm:SortDescription PropertyName="Count" Direction="Descending"/>
+                    <scm:SortDescription PropertyName="Time" Direction="Ascending"/>
+                </CollectionViewSource.SortDescriptions>
+            </CollectionViewSource>
+            <CollectionViewSource x:Name="charViewSource" x:Key="charViewSource" Source="{Binding CharacterCollection}" IsLiveFilteringRequested="True">
+                <CollectionViewSource.SortDescriptions>
+                    <scm:SortDescription PropertyName="Name" Direction="Ascending"/>
+                </CollectionViewSource.SortDescriptions>
+            </CollectionViewSource>
+            <ObjectDataProvider x:Key="spellpercent" ObjectType="{x:Type local:Character}" MethodName="TotalSpellCount">
+            </ObjectDataProvider>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <Fluent:Ribbon Grid.Row="0">
+                <!--Backstage-->
+                <Fluent:Ribbon.Menu>
+                    <Fluent:Backstage>
+                        <Fluent:BackstageTabControl>
+                            <Fluent:Button LargeIcon="images\Graphicloads-100-Flat-Upload.ico" Name="buttonLoadBuffs" Header="Load Buff List" Click="ButtonLoadBuffs_Click"/>
+                            <!--<Fluent:BackstageTabItem Header="Settings">
+                                <StackPanel  VerticalAlignment="Center">
+                                    <Fluent:Button LargeIcon="images\Pelfusion-Long-Shadow-Media-Settings.ico" Name="buttonSave" Header="Save" Click="ButtonSave_Click"/>
+                                </StackPanel>
+                            </Fluent:BackstageTabItem>-->
+                            <Fluent:BackstageTabItem Header="About">
+                                <StackPanel VerticalAlignment="Center">
+                                </StackPanel>
+                            </Fluent:BackstageTabItem>
+                            <Fluent:Button Header="Exit" Click="ButtonExit_Click"/>
+                        </Fluent:BackstageTabControl>
+
+                    </Fluent:Backstage>
+                </Fluent:Ribbon.Menu>
+                <!--Tabs-->
+                <Fluent:RibbonTabItem Header="Home">
+                    <Fluent:RibbonGroupBox Margin="0,10,0,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Width="100" Header="Open Log File">
+                        <Fluent:Button Width="60" Header="Load" LargeIcon="Images/Graphicloads-100-Flat-Upload.ico" Click="ButtonLoadLog_Click"/>                        
+                    </Fluent:RibbonGroupBox>
+                    <Fluent:RibbonGroupBox Margin="0,10,0,0" HorizontalContentAlignment="Center" Width="110" Header="Monitor Log File">
+                        <Fluent:Button Header="Monitor" LargeIcon="Images/Oxygen-Icons.org-Oxygen-Apps-utilities-system-monitor.ico" Click="ButtonMonitorLog_Click"/>
+                        <Image Width="40" Name="image_monitorindicator" Margin="5,0,0,0" Source="{Binding Converter={StaticResource monitorconverter}}"/>
+                    </Fluent:RibbonGroupBox>
+                    <Fluent:RibbonGroupBox Margin="0,10,0,0" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Width="350" Header="Date Filters">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Grid.Row="0" Grid.Column="0" Content="Date From: "/>
+                            <xctk:DateTimePicker Margin="0,5,0,0" Grid.Row="0" Grid.Column="1" x:Name="timepickerFrom" ValueChanged="TimepickerFrom_ValueChanged" ShowButtonSpinner="False">
+                            </xctk:DateTimePicker>
+                            <xctk:DateTimePicker Margin="0,5,0,0" Grid.Row="1" Grid.Column="1" x:Name="timepickerTo" ValueChanged="TimepickerTo_ValueChanged" ShowButtonSpinner="False">
+                            </xctk:DateTimePicker>
+                            <Label Grid.Row="1" Grid.Column="0" Content="Date To: "/>
+                        </Grid>                        
+                    </Fluent:RibbonGroupBox>
+                    <Fluent:RibbonGroupBox VerticalContentAlignment="Center" Margin="0,10,0,0" Header="Quick Date Filters" Width="150">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Margin="20,20,0,0" x:Name="comboboxQuickDate" SelectionChanged="ComboboxQuickDate_SelectionChanged" SelectedValuePath="Content">
+                                <ComboBoxItem>Last Hour</ComboBoxItem>
+                                <ComboBoxItem>Last 6 Hours</ComboBoxItem>
+                                <ComboBoxItem>Last 24 Hours</ComboBoxItem>
+                                <ComboBoxItem>Last 7 Days</ComboBoxItem>
+                                <ComboBoxItem IsSelected="True">All</ComboBoxItem>                                
+                            </ComboBox>
+                        </Grid>
+                    </Fluent:RibbonGroupBox>
+                    <Fluent:RibbonGroupBox Margin="0,10,0,0" Header="Additional Filters">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Fluent:TextBox HorizontalAlignment="Right" Width="275" Grid.Row="1" Header="Spell Name: " x:Name="textboxSpellFilter" TextChanged="TextboxSpellFilter_TextChanged"/>
+                            <Fluent:TextBox Margin="0,0,0,5" HorizontalAlignment="Right" Width="301" Grid.Row="0" Header="Character Name: " x:Name="textboxCharFilter" TextChanged="TextboxCharFilter_TextChanged"/>
+                        </Grid>
+
+                    </Fluent:RibbonGroupBox>
+                </Fluent:RibbonTabItem><!--
+                <Fluent:RibbonTabItem Name="tabGraph" Header="Graphs">
+                    
+                </Fluent:RibbonTabItem>
+                <Fluent:RibbonTabItem Name="tabSearch" Header="Search">
+                    <Fluent:RibbonGroupBox Header="User Search">
+                    </Fluent:RibbonGroupBox>
+                    <Fluent:RibbonGroupBox Header="Share Search">
+                    </Fluent:RibbonGroupBox>
+                    <Fluent:RibbonGroupBox Header="Site Search">
+                    </Fluent:RibbonGroupBox>
+                    <Fluent:RibbonGroupBox Header="User Filter">
+                    </Fluent:RibbonGroupBox>
+                </Fluent:RibbonTabItem>-->
+            </Fluent:Ribbon>
+        </StackPanel>
+        <xcad:DockingManager 
+                           AllowMixedOrientation="True"
+                           BorderBrush="Black"
+                           BorderThickness="5" Grid.ColumnSpan="2" Grid.Row="1">
+            <xcad:DockingManager.Theme>
+                <xcad:MetroTheme />
+            </xcad:DockingManager.Theme>
+            <xcad:LayoutRoot x:Name="_layoutRoot">
+                <xcad:LayoutPanel>
+                    <xcad:LayoutAnchorablePaneGroup DockWidth="275">
+                        <xcad:LayoutAnchorablePane>
+                            <xcad:LayoutAnchorable x:Name="paneCharacters" CanClose="False" Title="Character List" ContentId="charactersspane">
+                                <ListView x:Name="listviewCharacters" IsSynchronizedWithCurrentItem="True" SelectionChanged="ListviewCharacters_SelectionChanged" ItemsSource="{Binding Source={StaticResource charViewSource}}">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition />
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding Name}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorablePane>
+                    </xcad:LayoutAnchorablePaneGroup>
+                    <xcad:LayoutDocumentPane>
+                        <xcad:LayoutDocument x:Name="paneSpells" CanClose="False" Title="Spell Counts">
+                            <DataGrid Name="datagridSpells" AutoGenerateColumns="False" CanUserAddRows="False" ItemsSource="{Binding SelectedItem.Spells, ElementName=listviewCharacters}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Spell Name" Binding="{Binding SpellName}" IsReadOnly="True"/>
+                                    <DataGridTextColumn Header="Count" Binding="{Binding Count}" IsReadOnly="True"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </xcad:LayoutDocument>
+                        <!--<xcad:LayoutDocument x:Name="paneGraph" CanClose="False" Title="Spell Graph" IsSelectedChanged="PaneGraph_IsSelectedChanged">
+                            <oxy:Plot x:Name="piePlot" Title="Spell Distribution" >
+                                <oxy:PieSeries x:Name="pieGraph"
+                                    InnerDiameter="0.2"
+                                    ExplodedDistance="0"
+                                    Stroke="Black" StrokeThickness="1"
+                                    StartAngle="0" AngleSpan="360"
+                                    LabelField="SpellName" ValueField="Count" Visibility="Hidden"/>
+                            </oxy:Plot>
+                        </xcad:LayoutDocument>-->
+                        <xcad:LayoutDocument x:Name="paneInspectBuff" CanClose="False" Title="Inspect Buff">
+                            <DataGrid Name="datagridBuffs" AutoGenerateColumns="False" CanUserAddRows="False" ItemsSource="{Binding }">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Spell Missing" Binding="{Binding Name}" IsReadOnly="True"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </xcad:LayoutDocument>
+                    </xcad:LayoutDocumentPane>
+                </xcad:LayoutPanel>
+            </xcad:LayoutRoot>
+        </xcad:DockingManager>
+        <Fluent:StatusBar Grid.Row="3" Grid.ColumnSpan="2">
+            <Fluent:StatusBarItem Name="statusbarStatus" Title="Staus" HorizontalAlignment="Right" Content="{Binding Path=., StringFormat=\{0\}}"/>
+            <Fluent:StatusBarItem Content=" lines of logs processed" HorizontalAlignment="Right"/>
+            <Fluent:StatusBarItem Content="Log File: " HorizontalAlignment="Left"/>
+            <Fluent:StatusBarItem Name="statusbarFilename" Title="Filename" HorizontalAlignment="Left"/>
+            <Fluent:StatusBarItem Name="statusbarTime" Title="Process Time" HorizontalAlignment="Left" Visibility="Hidden"/>
+        </Fluent:StatusBar>
+    </Grid>
+</Window>
