@@ -43,11 +43,12 @@
                 <Fluent:Ribbon.Menu>
                     <Fluent:Backstage>
                         <Fluent:BackstageTabControl>
-                            <Fluent:BackstageTabItem Header="Settings">
+                            <Fluent:Button LargeIcon="images\Graphicloads-100-Flat-Upload.ico" Name="buttonLoadBuffs" Header="Load Buff List" Click="ButtonLoadBuffs_Click"/>
+                            <!--<Fluent:BackstageTabItem Header="Settings">
                                 <StackPanel  VerticalAlignment="Center">
-                                    <Fluent:Button LargeIcon="images\Custom-Save-as.ico" Name="buttonSave" Header="Save" Click="ButtonSave_Click"/>
+                                    <Fluent:Button LargeIcon="images\Pelfusion-Long-Shadow-Media-Settings.ico" Name="buttonSave" Header="Save" Click="ButtonSave_Click"/>
                                 </StackPanel>
-                            </Fluent:BackstageTabItem>
+                            </Fluent:BackstageTabItem>-->
                             <Fluent:BackstageTabItem Header="About">
                                 <StackPanel VerticalAlignment="Center">
                                 </StackPanel>
@@ -172,22 +173,29 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                         </xcad:LayoutDocument>
-                        <xcad:LayoutDocument x:Name="paneGraph" CanClose="False" Title="Spell Graph" IsSelectedChanged="PaneGraph_IsSelectedChanged">
+                        <!--<xcad:LayoutDocument x:Name="paneGraph" CanClose="False" Title="Spell Graph" IsSelectedChanged="PaneGraph_IsSelectedChanged">
                             <oxy:Plot x:Name="piePlot" Title="Spell Distribution" >
                                 <oxy:PieSeries x:Name="pieGraph"
                                     InnerDiameter="0.2"
                                     ExplodedDistance="0"
                                     Stroke="Black" StrokeThickness="1"
                                     StartAngle="0" AngleSpan="360"
-                                    LabelField="SpellName" ValueField="Count"/>
+                                    LabelField="SpellName" ValueField="Count" Visibility="Hidden"/>
                             </oxy:Plot>
+                        </xcad:LayoutDocument>-->
+                        <xcad:LayoutDocument x:Name="paneInspectBuff" CanClose="False" Title="Inspect Buff">
+                            <DataGrid Name="datagridBuffs" AutoGenerateColumns="False" CanUserAddRows="False" ItemsSource="{Binding }">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Spell Missing" Binding="{Binding Name}" IsReadOnly="True"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
                         </xcad:LayoutDocument>
                     </xcad:LayoutDocumentPane>
                 </xcad:LayoutPanel>
             </xcad:LayoutRoot>
         </xcad:DockingManager>
         <Fluent:StatusBar Grid.Row="3" Grid.ColumnSpan="2">
-            <Fluent:StatusBarItem Name="statusbarStatus" Title="Staus" HorizontalAlignment="Right"/>
+            <Fluent:StatusBarItem Name="statusbarStatus" Title="Staus" HorizontalAlignment="Right" Content="{Binding Path=., StringFormat=\{0\}}"/>
             <Fluent:StatusBarItem Content=" lines of logs processed" HorizontalAlignment="Right"/>
             <Fluent:StatusBarItem Content="Log File: " HorizontalAlignment="Left"/>
             <Fluent:StatusBarItem Name="statusbarFilename" Title="Filename" HorizontalAlignment="Left"/>
