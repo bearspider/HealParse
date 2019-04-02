@@ -148,6 +148,7 @@ namespace HealParse
                 //Filter by Character
                 if (!String.IsNullOrEmpty(textboxCharFilter.Text) && String.IsNullOrEmpty(textboxSpellFilter.Text))
                 {
+                    Rval = ((charobject.Name).ToUpper()).Contains(textboxCharFilter.Text.ToUpper());
                     Rval = Regex.IsMatch(charobject.Name, Regex.Escape(textboxCharFilter.Text), RegexOptions.IgnoreCase);
                 }
                 //Filter by Spell
@@ -161,7 +162,8 @@ namespace HealParse
                 //Filter by Character AND Spell
                 if (!String.IsNullOrEmpty(textboxCharFilter.Text) && !String.IsNullOrEmpty(textboxSpellFilter.Text))
                 {
-                    if (Regex.IsMatch(charobject.Name, Regex.Escape(textboxCharFilter.Text), RegexOptions.IgnoreCase) && ContainsSpell(charobject))
+                    Boolean charmatch = ((charobject.Name).ToUpper()).Contains(textboxCharFilter.Text.ToUpper());
+                    if (charmatch && ContainsSpell(charobject))
                     {
                         Rval = true;
                     }
