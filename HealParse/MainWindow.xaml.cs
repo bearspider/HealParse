@@ -92,14 +92,18 @@ namespace HealParse
             image_monitorindicator.DataContext = monitorstatus;
             statusbarStatus.DataContext = totallinecount;
             datagridBuffs.DataContext = missingbuffs;
-            characters = new Characters();
-            this.DataContext = characters;            
-            BindingOperations.EnableCollectionSynchronization(characters.CharacterCollection, _characterLock);
+            NewCharacters();
             BindingOperations.EnableCollectionSynchronization(missingbuffs, _buffLock);
             timepickerFrom.Value = DateTime.Now.AddYears(-7);
             timepickerTo.Value = DateTime.Now;
             synccontext = SynchronizationContext.Current;
             LoadBuffSettings();
+        }
+        private void NewCharacters()
+        {
+            characters = new Characters();
+            this.DataContext = characters;
+            BindingOperations.EnableCollectionSynchronization(characters.CharacterCollection, _characterLock);
         }
         private void LoadBuffSettings()
         {
@@ -135,6 +139,7 @@ namespace HealParse
             var charobject = (Character)item;
             if(!Regex.IsMatch(charobject.Name,@"(a|an)\s.*" ,RegexOptions.IgnoreCase))
             {
+                
                 //Show all values if both filters are empty
                 if (String.IsNullOrEmpty(textboxCharFilter.Text) && String.IsNullOrEmpty(textboxSpellFilter.Text))
                 {
@@ -161,7 +166,7 @@ namespace HealParse
                         Rval = true;
                     }
                 }
-                if (charobject.SpellsEmpty(datefromfilter.Value, datetofilter.Value))
+                if (comboboxQuickDate.SelectedValue.ToString() != "All" && charobject.SpellsEmpty(datefromfilter.Value, datetofilter.Value))
                 {
                     Rval = false;
                 }
@@ -247,6 +252,10 @@ namespace HealParse
                         Console.WriteLine("Valid Date on Spell");
                         return true;
                     }
+                    if(comboboxQuickDate.SelectedValue.ToString() == "All")
+                    {
+                        return true;
+                    }
                     else
                     {
                         Console.WriteLine("Invalid Date on Spell");
@@ -286,9 +295,7 @@ namespace HealParse
                 yourname = namematch.Groups["character"].Value;
                 if (characters.Count() > 0)
                 {
-                    characters.Clear();
-                    BindingOperations.EnableCollectionSynchronization(characters.CharacterCollection, _characterLock);
-                    CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Filter = null;
+                    NewCharacters();
                     listviewCharacters.SelectedItem = null;
                     statusbarTime.Visibility = Visibility.Hidden;
                 }
@@ -327,8 +334,7 @@ namespace HealParse
             }
             else
             {
-                characters = new Characters();
-                this.DataContext = characters;
+                NewCharacters();
                 statusbarTime.Visibility = Visibility.Hidden;
                 if(logmonitorfile == null)
                 {
@@ -408,6 +414,7 @@ namespace HealParse
                                         characters.AddSpell((String)o, spellmatch.Groups["spellname"].Value, newtime);
                                         UpdateList();
                                     }), tempname);
+
                                 }
                                 if(captureline.Contains(inspectbuffreset))
                                 {
@@ -476,6 +483,8 @@ namespace HealParse
         }
         private void UpdateList()
         {
+            Console.WriteLine(listviewCharacters.ItemsSource);
+            CollectionViewSource.GetDefaultView(listviewCharacters.ItemsSource).Filter = UserFilter;
             if ((Character)listviewCharacters.SelectedItem != null)
             {
                 if (((Character)listviewCharacters.SelectedItem).MaxSpellCount == 0)
